@@ -11,24 +11,15 @@ traditional machine learning method. A linear support vector machine (SVM) was t
 with [GTI vehicle image database](https://www.gti.ssr.upm.es/data/Vehicle_database.html)
 and vehicle images extracted from [KITTI Vision Benchmark Suite](http://www.cvlibs.net/datasets/kitti/).
 
--- Extract features from dataset	
--- Train classifier with extracted features	
--- Detect vehicle with classifier	
-
-Can be improved if using deep learning methods like Fast RCNN or YOLO.
-
-The goals / steps of this project are the following:
+The steps of this project are the following:
 
 * Perform a Histogram of Oriented Gradients (HOG) feature extraction on a labeled training set of images and train a classifier Linear SVM classifier
-* Optionally, you can also apply a color transform and append binned color features, as well as histograms of color, to your HOG feature vector. 
-* Note: for those first two steps don't forget to normalize your features and randomize a selection for training and testing.
-* Implement a sliding-window technique and use your trained classifier to search for vehicles in images.
-* Run your pipeline on a video stream (start with the test_video.mp4 and later implement on full project_video.mp4) and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
-* Estimate a bounding box for vehicles detected.
+* Implement a sliding-window technique and use trained classifier to search for vehicles in images.
+* Test pipeline on a video stream and estimate a bounding box for vehicles detected.
 
 ## Video
 
-
+[![Project video color space 1](https://img.youtube.com/vi/l3lIVtXIZcM/0.jpg)](https://www.youtube.com/watch?v=l3lIVtXIZcM)
 
 ## Feature extraction
 
@@ -150,39 +141,43 @@ And it requires least computational cost among all three models.
 Therefore, I choose Linear SVM to be the classifier in the video pipeline, and try to suppress 
 error detection by combining multiple frames.
 
+In the end, draw bounding box of vehicles based on the heatmap.
+
+```python
+def draw_labeled_bboxes(img, labels):
+    # Iterate through all detected cars
+    for car_number in range(1, labels[1]+1):
+        # Find pixels with each car_number label value
+        nonzero = (labels[0] == car_number).nonzero()
+        # Identify x and y values of those pixels
+        nonzeroy = np.array(nonzero[0])
+        nonzerox = np.array(nonzero[1])
+        # Define a bounding box based on min/max x and y
+        bbox = ((np.min(nonzerox), np.min(nonzeroy)), (np.max(nonzerox), np.max(nonzeroy)))
+        # Draw the box on the image
+        cv2.rectangle(img, bbox[0], bbox[1], (0,0,255), 6)
+    # Return the image
+    return img
+```
+
 ## Vehicle detection and tracking on video
 
+To suppress the error detection from singe images, a buffer was used to record the heatmap of most recent 10 frames.
+The actual vehicle detection for each frame is based on the combination of all heatmaps in the buffer. 
+To further suppress the adding up of weak error detection in each frame, the weak detection areas in single image 
+are eliminated. Only continously strong detection will be considered as a vehicle.
 
-#### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
-Here's a [link to my video result](./project_video.mp4)
-
-
-#### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
-
-I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
-
-Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
-
-### Here are six frames and their corresponding heatmaps:
-
-![alt text][image5]
-
-### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:
-![alt text][image6]
-
-### Here the resulting bounding boxes are drawn onto the last frame in the series:
-![alt text][image7]
+Heatmap	video	
+[![Project video heatmap](https://img.youtube.com/vi/CvOSq0J0pzk/0.jpg)](https://www.youtube.com/watch?v=CvOSq0J0pzk)
 
 
+## Further improvement
 
----
 
-### Discussion
+Can be improved if using deep learning methods like Fast RCNN or YOLO.
 
-#### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
-
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
-
-## Next steps
 
 Try XGBoost, or deep learning approaches like Fast RCNN and YOLO.
+
+
+
