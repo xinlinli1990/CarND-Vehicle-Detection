@@ -164,13 +164,11 @@ To further suppress the adding up of weak error detection in each frame, the wea
 are eliminated. Only continously strong detection will be considered as a vehicle.
 
 Heatmap	video	
+	
 [![Project video heatmap](https://img.youtube.com/vi/CvOSq0J0pzk/0.jpg)](https://www.youtube.com/watch?v=CvOSq0J0pzk)
 
 
 ## Further improvement
 
-Like mentioned in previous parts, better tracking accuracy could be achieved by parameter tunning or test other classifier like XGBoost.
+Like mentioned in previous parts, better tracking accuracy could be achieved by parameter tunning or using other popular classifier like XGBoost.
 As an object detection and tracking problem, the accuracy could also be greatly improved if using deep learning methods like Fast RCNN, Faster RCNN or YOLO.
-
-
-
