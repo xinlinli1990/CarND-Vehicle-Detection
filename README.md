@@ -1,7 +1,3 @@
-## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
-### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
-
-
 # **Vehicle Tracking Project**
 
 ## Introduction
@@ -173,11 +169,8 @@ Heatmap	video
 
 ## Further improvement
 
-
-Can be improved if using deep learning methods like Fast RCNN or YOLO.
-
-
-Try XGBoost, or deep learning approaches like Fast RCNN and YOLO.
+Like mentioned in previous parts, better tracking accuracy could be achieved by parameter tunning or test other classifier like XGBoost.
+As an object detection and tracking problem, the accuracy could also be greatly improved if using deep learning methods like Fast RCNN, Faster RCNN or YOLO.
 
 
 
