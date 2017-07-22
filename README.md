@@ -114,7 +114,8 @@ Here is the visualization of sliding windows.
 ![scan](./images/scan.jpg)
 ![all-scan](./images/all-scan.jpg)
 
-All three classifier were tested and here are the visualization of their heatmaps.		
+All three classifier were tested and here are the visualization of their heatmaps.	
+	
 *Gradient Boosting Decision Tree (GBDT)*
 ![GD](./images/GD.jpg)
 *Random Forest (RF)*	
