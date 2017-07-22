@@ -50,7 +50,6 @@ def get_hog_features(img, orient, pix_per_cell, cell_per_block,
                        visualise=vis, feature_vector=feature_vec)
         return features
 
-
 def extract_features(imgs,
                      cspace='RGB',
                      spatial_size=(32, 32),
@@ -143,27 +142,19 @@ def extract_features(imgs,
     return features
 
 
-def run(i_cspace=0,
-        spatial=32,
-        histbin=32,
-        orient=9,
-        pix_per_cell=8,
-        cell_per_block=2,
-        hog_channel=3):
+def dataset_feature_extraction(i_cspace=0,
+                               spatial=32,
+                               histbin=32,
+                               orient=9,
+                               pix_per_cell=8,
+                               cell_per_block=2,
+                               hog_channel=3):
 
     # Read in car and non-car images
     car_image_paths = []
     car_image_paths.extend(glob.glob('../dataset/vehicles/vehicles/*/*.png'))
-    # car_image_paths.extend(glob.glob('../dataset/vehicles/vehicles/GTI_Far/*.png'))
-    # car_image_paths.extend(glob.glob('../dataset/vehicles/vehicles/GTI_Left/*.png'))
-    # car_image_paths.extend(glob.glob('../dataset/vehicles/vehicles/GTI_Right/*.png'))
-    # car_image_paths.extend(glob.glob('../dataset/vehicles/vehicles/GTI_MiddleClose/*.png'))
-    # car_image_paths.extend(glob.glob('../dataset/vehicles/vehicles/KITTI_extracted/*.png'))
-
     notcar_image_paths = []
     notcar_image_paths.extend(glob.glob('../dataset/non-vehicles/non-vehicles/*/*.png'))
-    # notcar_image_paths.extend(glob.glob('../dataset/non-vehicles/non-vehicles/GTI/*.png'))
-    # notcar_image_paths.extend(glob.glob('../dataset/non-vehicles/non-vehicles/Extras/*.png'))
 
     car_image_paths = shuffle(car_image_paths)
     notcar_image_paths = shuffle(notcar_image_paths)
@@ -171,36 +162,34 @@ def run(i_cspace=0,
     cars = car_image_paths
     notcars = notcar_image_paths
 
-    # play with these values to see how your classifier
-    # performs under different binning scenarios
     cspaces = ['RGB', 'HSV', 'LUV', 'HLS', 'YUV', 'YCrCb', 'LAB']
-    # i_cspace = 3
-    # spatial = 32
-    # histbin = 32
-    # orient = 9
-    # pix_per_cell = 8
-    # cell_per_block = 2
-    # hog_channel = 'ALL' # Can be 0, 1, 2, or "ALL"
 
     if hog_channel == 3:
         hog_channel = 'ALL'
 
-    #t_start=time.time()
-    car_features = extract_features(cars, cspace=cspaces[i_cspace], spatial_size=(spatial, spatial),
-                            hist_bins=histbin, hist_range=(0, 256),orient=orient,
-                            pix_per_cell=pix_per_cell, cell_per_block=cell_per_block,
-                            hog_channel=hog_channel)
+    # Extract features from car images
+    car_features = extract_features(cars, 
+                                    cspace=cspaces[i_cspace], 
+                                    spatial_size=(spatial, spatial),
+                                    hist_bins=histbin, 
+                                    hist_range=(0, 256),
+                                    orient=orient,
+                                    pix_per_cell=pix_per_cell, 
+                                    cell_per_block=cell_per_block,
+                                    hog_channel=hog_channel)
+                                    
+    # Extract features from non-car images
+    notcar_features = extract_features(notcars, 
+                                       cspace=cspaces[i_cspace], 
+                                       spatial_size=(spatial, spatial), 
+                                       hist_bins=histbin, 
+                                       hist_range=(0, 256), 
+                                       orient=orient,
+                                       pix_per_cell=pix_per_cell, 
+                                       cell_per_block=cell_per_block,
+                                       hog_channel=hog_channel)
 
-    #t_extract_car=time.time()
-    #print(round(t_extract_car-t_start, 5), 'Seconds to extract car features')
-    notcar_features = extract_features(notcars, cspace=cspaces[i_cspace], spatial_size=(spatial, spatial),
-                            hist_bins=histbin, hist_range=(0, 256), orient=orient,
-                            pix_per_cell=pix_per_cell, cell_per_block=cell_per_block,
-                            hog_channel=hog_channel)
-    #t_extract_not_car=time.time()
-    #print(round(t_extract_not_car-t_extract_car, 5), 'Seconds to extract non-car features')
-
-    # Create an array stack of feature vectors
+    # Create an array stack of feature vectors (car and non-car feature vectors)
     X = np.vstack((car_features, notcar_features)).astype(np.float64)
     # Fit a per-column scaler
     X_scaler = StandardScaler().fit(X)
@@ -210,12 +199,12 @@ def run(i_cspace=0,
     # Define the labels vector
     y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
 
-
     # Split up data into randomized training and test sets
     rand_state = np.random.randint(0, 100)
     X_train, X_test, y_train, y_test = train_test_split(
         scaled_X, y, test_size=0.2, random_state=rand_state)
 
+    # Save extracted features and scaler.
     pickle.dump(X_scaler, open("X_scaler.p", "wb"), protocol=4)
     pickle.dump(X_train, open("X_train.p", "wb"), protocol=4)
     pickle.dump(y_train, open("y_train.p", "wb"), protocol=4)
