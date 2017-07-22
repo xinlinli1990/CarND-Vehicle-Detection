@@ -116,11 +116,11 @@ Here is the visualization of sliding windows.
 
 All three classifier were tested and here are the visualization of their heatmaps.	
 	
-*Gradient Boosting Decision Tree (GBDT)*
+1. *Gradient Boosting Decision Tree (GBDT)*
 ![GD](./images/GD.jpg)
-*Random Forest (RF)*	
+2. *Random Forest (RF)*	
 ![RF](./images/RF.jpg)
-*Linear SVM*
+3. *Linear SVM*
 ![LSVM](./images/LSVM.jpg)
 
 The Random Forest classifier generates too much false positives 
