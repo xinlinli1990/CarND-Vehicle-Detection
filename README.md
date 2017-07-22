@@ -170,5 +170,5 @@ Heatmap	video
 
 ## Further improvement
 
-Like mentioned in previous parts, better tracking accuracy could be achieved by parameter tunning or using other popular classifier like XGBoost.
+As mentioned in previous chapters, better tracking accuracy could be achieved by parameter tunning or using other popular classifier like XGBoost.
 As an object detection and tracking problem, the accuracy could also be greatly improved if using deep learning methods such as Fast RCNN, Faster RCNN or YOLO.
