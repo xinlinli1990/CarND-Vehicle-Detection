@@ -48,11 +48,11 @@ hog_features_param = {'orient': 9,
 
 # Define a function to return HOG features and visualization
 def get_hog_features(img, 
-                     orient, 
-					 pix_per_cell, 
-					 cell_per_block,
-					 vis=False, 
-					 feature_vec=True):
+                     orient,
+                     pix_per_cell, 
+                     cell_per_block,
+                     vis=False, 
+                     feature_vec=True):
 					 
     # Call with two outputs if vis==True
     if vis == True:
@@ -69,56 +69,89 @@ def get_hog_features(img,
 ```
 
 For simplicity reason, I used the HOG parameters proposed from the original pedestrian detection paper 
-and the results proved that it also works well for vehicle detection. Furthermore, as purposed in the original paper,
- missing rate of detection could be improved by performing the parameter tuning (cell size and block size) 
+and the results proved that it also works well for vehicle detection. As purposed in the original paper,
+the missing rate of detection could be further improved by performing the parameter tuning (cell size and block size) 
+as following figure shown.
 
 ![](./images/HOG_param.JPG)
 
-After explored different color spaces and hyperparameters, I decided to use YCrCb color space. 
+After explored different color spaces and hyperparameters, I decided to use YCrCb color space. The car geometry in Y space 
+and tail light in Cr, Cb space is a very good feature to distinguish vehicle from the background.
 
-Here is an example of the hog feature extracted in YCrCb color space from one car image and one non-car image . 	
+Here is an example of the hog feature extracted in YCrCb color space from one car image and one non-car image. 	
 ![car-hog](./images/car-hog.jpg)	
-
-I explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`). 
-I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
-
-Here is an example using the `YCrCb` color space and HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
-
-
-![alt text][image2]
-
-#### 2. Explain how you settled on your final choice of HOG parameters.
-
-I tried various combinations of parameters and...
 
 ## Classifier traning
 
-#### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
+Then I loaded all extracted features into memory and trained three classifiers. One is linear SVM which is used in the pedestrain detection paper.
+Others are Gradient Boosting Decision Tree (GBDT) and Random Forest (RF), they are very popular classifiers in Kaggle competition. For simplicity reason, 
+all classifier use default parameters in scikit-learn.
 
-I trained a linear SVM using...
+```python
+# Load features
+X_train = pickle.load(open("X_train.p", "rb"))
+y_train = pickle.load(open("y_train.p", "rb"))
+X_test = pickle.load(open("X_test.p", "rb"))
+y_test = pickle.load(open("y_test.p", "rb"))
 
-## Vehicle detection and tracking with sliding window search
+clf = LinearSVC()
+# clf = GradientBoostingClassifier()
+# clf = RandomForestClassifier()
 
-### Sliding Window Search
+clf.fit(X_train, y_train)
 
-sliding window image
+pickle.dump(clf, open("classifier.p", "wb"), protocol=4)
+```
 
+Linear SVM performs best among three classifier with default parameters.
 
+| Classifier                       | Validation Accuracy | 
+|:--------------------------------:|:-------------------:|
+| Linear SVM                       | 98.17 %             |
+| Gradient Boosting Decision Tree  | 94.56 %             |
+| Random Forest                    | 97.23 %             |
 
-#### 1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
+Linear SVM performs best based on the detection accuracy on validation set.
 
-I decided to search random window positions at random scales all over the image and came up with this (ok just kidding I didn't actually ;):
+## Vehicle detection with sliding window search on single image
 
-![alt text][image3]
+To detect the vehicle position on a single image, sliding window search method was used. A window sliding on the image and crop image into multiple areas. 
+The trained classifier determine whether each area contains vehicle.
 
-#### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
+The number of sliding windows can be reduced by only scaning road surface.	
+![windows2](./images/windows-2.jpg)	
 
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
+Here is the visualization of sliding windows.
 
-![alt text][image4]
----
+![scan2](./images/scan2.jpg)	
+![scan](./images/scan.jpg)
+![all-scan](./images/all-scan.jpg)
 
-### Video Implementation
+All three classifier were tested and here are the visualization of their heatmaps.	
+*Gradient Boosting Decision Tree (GBDT)*
+![GD](./images/GD.jpg)
+*Random Forest (RF)*	
+![RF](./images/RF.jpg)
+*Linear SVM*
+![LSVM](./images/LSVM.jpg)
+
+The Random Forest classifier generates too much false positives 
+so I decided not to use it in this project.
+
+GBDT generates very few false positives on all seven test images. 
+It's reasonable since it is a boosting model which focus on reduce model bias.
+However, it performs weakly on the detection of white vehicle in the video. 
+This could be a sign of overfitting so we could try to apply regularization technique 
+or reduce the number of boosting iterations
+
+Linear SVM generates false positives but provide strong detection on all vehicles.
+And it requires least computational cost among all three models.
+
+Therefore, I choose Linear SVM to be the classifier in the video pipeline, and try to suppress 
+error detection by combining multiple frames.
+
+## Vehicle detection and tracking on video
+
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
 Here's a [link to my video result](./project_video.mp4)
